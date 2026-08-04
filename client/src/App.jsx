@@ -13,6 +13,7 @@ import ShareCard from './components/ShareCard.jsx';
 import PsychologyView from './components/PsychologyView.jsx';
 import PlaybookView from './components/PlaybookView.jsx';
 import MarketJournalView from './components/MarketJournalView.jsx';
+import StudyView from './components/StudyView.jsx';
 import PropFirmsView from './components/PropFirmsView.jsx';
 import AccountsView from './components/AccountsView.jsx';
 import HelpModal from './components/HelpModal.jsx';
@@ -29,6 +30,7 @@ const TABS = [
   ['playbook', 'Playbook'],
   ['accounts', 'Accounts'],
   ['market', 'Market'],
+  ['study', 'Study'],
   ['data', 'Data'],
 ];
 
@@ -189,13 +191,14 @@ export default function App() {
             {showFilters && <Filters trades={trades} playbooks={playbooks} filters={filters} setFilters={setFilters} />}
             {tab === 'dashboard' && <Dashboard trades={filtered} />}
             {tab === 'trades' && <TradesView trades={filtered} playbooks={playbooks} onEdit={setEditing} onDelete={del} onShare={setSharing} />}
-            {tab === 'calendar' && <CalendarView trades={filtered} />}
+            {tab === 'calendar' && <CalendarView trades={filtered} playbooks={playbooks} onEditTrade={setEditing} notify={notify} />}
             {tab === 'insights' && <InsightsView trades={filtered} />}
             {tab === 'analysis' && <AnalysisView trades={filtered} playbooks={playbooks} />}
             {tab === 'psychology' && <PsychologyView trades={filtered} />}
             {tab === 'playbook' && <PlaybookView trades={trades} notify={notify} onChanged={loadPlaybooks} />}
             {tab === 'accounts' && <AccountsView trades={trades} propfirms={propfirms} onUpdate={loadPropfirms} notify={notify} />}
             {tab === 'market' && <MarketJournalView notify={notify} trades={trades} />}
+            {tab === 'study' && <StudyView notify={notify} />}
             {tab === 'data' && <DataView trades={trades} onChanged={load} notify={notify} />}
           </>
         )}

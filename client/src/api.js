@@ -73,4 +73,15 @@ export const api = {
   addAccount: (firmId, a) => req('/api/propfirms/' + firmId + '/accounts', { method: 'POST', headers: J, body: JSON.stringify(a) }),
   updateAccount: (firmId, accId, a) => req('/api/propfirms/' + firmId + '/accounts/' + accId, { method: 'PUT', headers: J, body: JSON.stringify(a) }),
   deleteAccount: (firmId, accId) => req('/api/propfirms/' + firmId + '/accounts/' + accId, { method: 'DELETE' }),
+  listStudy: () => req('/api/study'),
+  createStudy: (n) => req('/api/study', { method: 'POST', headers: J, body: JSON.stringify(n) }),
+  updateStudy: (id, n) => req('/api/study/' + id, { method: 'PUT', headers: J, body: JSON.stringify(n) }),
+  deleteStudy: (id) => req('/api/study/' + id, { method: 'DELETE' }),
+  uploadStudyShot: (id, file, label) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('label', label || '');
+    return req('/api/study/' + id + '/screenshots', { method: 'POST', body: fd });
+  },
+  deleteStudyShot: (id, sid) => req('/api/study/' + id + '/screenshots/' + sid, { method: 'DELETE' }),
 };

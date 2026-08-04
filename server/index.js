@@ -10,6 +10,7 @@ const auth = require('./auth');
 const playbooks = require('./playbooks');
 const journal = require('./journal');
 const propfirms = require('./propfirms');
+const study = require('./study');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -238,6 +239,36 @@ app.delete('/api/propfirms/:firmId/accounts/:accId', (req, res) => {
   res.json({ ok });
 });
 
+// ---- Study / Learn notes ----
+app.get('/api/study', (req, res) => res.json(study.list()));
+app.post('/api/study', (req, res) => res.status(201).json(study.create(req.body || {})));
+app.put('/api/study/:id', (req, res) => {
+  const p = study.update(req.params.id, req.body || {});
+  if (!p) return res.status(404).json({ error: 'not found' });
+  res.json(p);
+});
+app.delete('/api/study/:id', (req, res) => {
+  const p = study.remove(req.params.id);
+  if (!p) return res.status(404).json({ error: 'not found' });
+  (p.screenshots || []).forEach((s) => { try { fs.unlinkSync(path.join(UPLOAD_DIR, s.filename)); } catch {} });
+  res.json({ ok: true });
+});
+app.post('/api/study/:id/screenshots', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'no image file' });
+  const shot = study.addScreenshot(req.params.id, req.file.filename, req.body.label);
+  if (!shot) {
+    try { fs.unlinkSync(path.join(UPLOAD_DIR, req.file.filename)); } catch {}
+    return res.status(404).json({ error: 'note not found' });
+  }
+  res.status(201).json(shot);
+});
+app.delete('/api/study/:id/screenshots/:sid', (req, res) => {
+  const shot = study.removeScreenshot(req.params.id, req.params.sid);
+  if (!shot) return res.status(404).json({ error: 'not found' });
+  try { fs.unlinkSync(path.join(UPLOAD_DIR, shot.filename)); } catch {}
+  res.json({ ok: true });
+});
+
 // ---- CSV export ----
 const CSV_COLUMNS = [
   'date', 'time', 'exitTime', 'symbol', 'direction', 'entry', 'exit', 'exits', 'contracts',
@@ -246,7 +277,7 @@ const CSV_COLUMNS = [
   'entryModel', 'htfDelivery', 'newsEvent', 'grade', 'emotionEntry', 'emotionExit', 'mistake',
   'emotion', 'mistakes', 'rating', 'planFollowed', 'session', 'notes',
   'setupTags', 'dailyBias', 'htfPda', 'drawOnLiquidity', 'narrative', 'po3',
-  'tvUrl', 'accountType', 'propFirm', 'rulesFollowed', 'ruleBroken', 'accountId',
+  'tvUrl', 'accountType', 'propFirm', 'rulesFollowed', 'ruleBroken', 'accountId', 'accountIds',
 ];
 
 app.get('/api/export/csv', (req, res) => {
@@ -254,6 +285,7 @@ app.get('/api/export/csv', (req, res) => {
     ...t,
     setupTags: Array.isArray(t.setupTags) ? t.setupTags.join('; ') : (t.setupTags || ''),
     exits: Array.isArray(t.exits) ? t.exits.map((p) => `${p.qty}@${p.price}`).join('; ') : '',
+    accountIds: Array.isArray(t.accountIds) ? t.accountIds.join('; ') : (t.accountIds || ''),
   }));
   const text = csv.stringify(trades, CSV_COLUMNS);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -368,6 +400,7 @@ app.post('/api/import/csv', (req, res) => {
     session: o.session ?? o.Session ?? '',
     notes: o.notes ?? o.Notes ?? '',
     accountId: o.accountId ?? o['Account ID'] ?? '',
+    accountIds: (o.accountIds ?? o['Account IDs'] ?? '').split(/[;,]/).map((s) => s.trim()).filter(Boolean),
   }));
   const count = store.bulkAdd(mapped);
   res.json({ imported: count });

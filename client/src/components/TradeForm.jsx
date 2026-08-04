@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import {
   previewMetrics, defaultPointValue, fmtUSD, fmtR, fmtNum, SESSIONS, EMOTIONS, todayISO,
   ICT_SETUPS, DRAW_ON_LIQUIDITY, ACCOUNT_TYPES,
-  isTradingViewUrl, setupTagsOf,
+  isTradingViewUrl, setupTagsOf, accountIdsOf,
 } from '../helpers.js';
 
 const CUSTOM_SETUPS_KEY = 'pug_custom_setups';
@@ -72,7 +72,7 @@ const blank = () => ({
   emotionEntry: '', emotionExit: '', mistake: '',
   session: 'NY', notes: '', rating: '', planFollowed: false, emotion: '', mistakes: '',
   setupTags: [], drawOnLiquidity: '', narrative: '',
-  tvUrl: '', accountType: '', propFirm: '', playbookId: '', rulesFollowed: true, ruleBroken: '', accountId: '',
+  tvUrl: '', accountType: '', propFirm: '', playbookId: '', rulesFollowed: true, ruleBroken: '', accountIds: [],
   screenshots: [],
 });
 
@@ -181,6 +181,13 @@ export default function TradeForm({ trade, playbooks = [], propfirms = [], onClo
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  function toggleAccount(id) {
+    setForm((f) => {
+      const cur = Array.isArray(f.accountIds) ? f.accountIds : [];
+      return { ...f, accountIds: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id] };
+    });
+  }
 
   function set(k, v) {
     setForm((f) => {
@@ -455,20 +462,28 @@ export default function TradeForm({ trade, playbooks = [], propfirms = [], onClo
                 {playbooks.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
-            <div className="field">
-              <label>Account (prop firm)</label>
-              <select value={form.accountId || ''} onChange={(e) => set('accountId', e.target.value)}>
-                <option value="">- none -</option>
-                {propfirms.map((f) => (
-                  <optgroup key={f.id} label={f.name}>
-                    {(f.accounts || []).map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}{a.type ? ` · ${a.type}` : ''}{a.status && a.status !== 'active' ? ` · ${a.status.toUpperCase()}` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+            <div className="field full">
+              <label>Accounts (copy trader — tick every account that took this trade)</label>
+              {propfirms.length === 0 ? (
+                <div className="hint">No accounts yet — add them in the Accounts tab.</div>
+              ) : (
+                propfirms.map((f) => (
+                  <div key={f.id} style={{ marginBottom: 8 }}>
+                    <div className="hint" style={{ marginBottom: 4 }}>{f.name}</div>
+                    <div className="chip-row">
+                      {(f.accounts || []).map((a) => (
+                        <button
+                          key={a.id} type="button"
+                          className={'chip' + ((form.accountIds || []).includes(a.id) ? ' active' : '')}
+                          onClick={() => toggleAccount(a.id)}
+                        >
+                          {a.name}{a.type ? ` · ${a.type}` : ''}{a.status && a.status !== 'active' ? ` · ${a.status.toUpperCase()}` : ''}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             <div className="field">
               <label>Rules followed</label>
@@ -556,6 +571,7 @@ function normalize(t) {
   });
   o.screenshots = t.screenshots || [];
   o.setupTags = setupTagsOf(t);
+  o.accountIds = accountIdsOf(t);
   o.exits = Array.isArray(t.exits)
     ? t.exits.map((p) => ({ qty: p.qty == null ? '' : String(p.qty), price: p.price == null ? '' : String(p.price) }))
     : [];

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { computeStats, equitySeries, fmtUSD, fmtNum } from '../helpers.js';
+import { computeStats, equitySeries, fmtUSD, fmtNum, accountIdsOf } from '../helpers.js';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import PropFirmsView, { statusColor, statusLabel } from './PropFirmsView.jsx';
 
@@ -11,7 +11,7 @@ export default function AccountsView({ trades = [], propfirms = [], onUpdate, no
     const out = [];
     for (const f of propfirms) {
       for (const a of (f.accounts || [])) {
-        const accTrades = trades.filter((t) => t.accountId === a.id);
+        const accTrades = trades.filter((t) => accountIdsOf(t).includes(a.id));
         out.push({
           id: a.id, firm: f.name, type: a.type, name: a.name, balance: a.balance || 0,
           status: a.status || 'active',

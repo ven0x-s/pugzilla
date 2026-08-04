@@ -177,6 +177,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .cal-cell.empty { background: transparent; border: none; }
 .cal-cell .d { font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
 .news-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neg); box-shadow: 0 0 5px rgba(239,68,68,0.8); display: inline-block; }
+.note-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px rgba(59,130,246,0.8); display: inline-block; }
+.cal-cell:hover { border-color: var(--accent); }
 .cal-cell .p { font-weight: 700; font-size: 13px; margin-top: auto; }
 .cal-cell .c { font-size: 10px; color: var(--text-dim); }
 .cal-cell.win { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.08); }

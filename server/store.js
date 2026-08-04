@@ -126,7 +126,7 @@ const FIELDS = [
   'rating', 'planFollowed', 'emotion', 'mistakes',
   // ICT / HTF / prop-firm / playbook fields (all optional, backwards compatible)
   'setupTags', 'dailyBias', 'htfPda', 'drawOnLiquidity', 'narrative', 'po3',
-  'tvUrl', 'accountType', 'propFirm', 'rulesFollowed', 'ruleBroken', 'playbookId', 'accountId',
+  'tvUrl', 'accountType', 'propFirm', 'rulesFollowed', 'ruleBroken', 'playbookId', 'accountId', 'accountIds',
 ];
 
 function sanitize(input) {

@@ -275,7 +275,7 @@ export function isTradingViewUrl(url) {
   }
 }
 
-export const APP_VERSION = '2.6.1';
+export const APP_VERSION = '2.7.0';
 
 // Per setup-tag stats. A trade with multiple tags counts toward each of them.
 export function setupTagStats(trades) {
@@ -296,6 +296,13 @@ export function biasSplit(trades) {
     withStats: computeStats(withB), againstStats: computeStats(against),
     withN: withB.length, againstN: against.length,
   };
+}
+
+// Accounts a trade was executed on. Supports the new multi-account `accountIds`
+// array and falls back to the legacy single `accountId` for older trades.
+export function accountIdsOf(t) {
+  if (Array.isArray(t.accountIds) && t.accountIds.length) return t.accountIds.filter(Boolean);
+  return t.accountId ? [t.accountId] : [];
 }
 
 export const ACCOUNT_ORDER = ACCOUNT_TYPES;
