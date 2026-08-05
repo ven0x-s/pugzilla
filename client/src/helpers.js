@@ -275,7 +275,7 @@ export function isTradingViewUrl(url) {
   }
 }
 
-export const APP_VERSION = '2.7.0';
+export const APP_VERSION = '2.7.1';
 
 // Per setup-tag stats. A trade with multiple tags counts toward each of them.
 export function setupTagStats(trades) {

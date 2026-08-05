@@ -41,8 +41,9 @@ export default function AccountsView({ trades = [], propfirms = [], onUpdate, no
                     <th style={{ textAlign: 'left' }}>Type</th>
                     <th style={{ textAlign: 'left' }}>Account</th>
                     <th style={{ textAlign: 'left' }}>Status</th>
-                    <th style={{ textAlign: 'right' }}>Balance</th>
+                    <th style={{ textAlign: 'right' }}>Start balance</th>
                     <th style={{ textAlign: 'right' }}>Journal P&amp;L</th>
+                    <th style={{ textAlign: 'right' }}>Current</th>
                     <th style={{ textAlign: 'right' }}>Trades</th>
                     <th style={{ textAlign: 'right' }}>Win %</th>
                     <th style={{ textAlign: 'right' }}>Avg R</th>
@@ -57,6 +58,7 @@ export default function AccountsView({ trades = [], propfirms = [], onUpdate, no
                       <td style={{ color: statusColor(r.status), fontWeight: 600 }}>{statusLabel(r.status)}</td>
                       <td className="num" style={{ textAlign: 'right' }}>{fmtUSD(r.balance)}</td>
                       <td className={'num ' + cls(r.stats.totalPnl)} style={{ textAlign: 'right' }}>{r.stats.count ? fmtUSD(r.stats.totalPnl) : '-'}</td>
+                      <td className={'num ' + cls(r.stats.totalPnl)} style={{ textAlign: 'right', fontWeight: 700 }}>{fmtUSD(r.balance + r.stats.totalPnl)}</td>
                       <td className="num" style={{ textAlign: 'right' }}>{r.stats.count}</td>
                       <td className="num" style={{ textAlign: 'right' }}>{r.stats.count ? r.stats.winRate.toFixed(0) + '%' : '-'}</td>
                       <td className="num" style={{ textAlign: 'right' }}>{r.stats.avgR == null ? '-' : fmtNum(r.stats.avgR)}</td>
@@ -66,7 +68,7 @@ export default function AccountsView({ trades = [], propfirms = [], onUpdate, no
               </table>
             </div>
             <div className="hint" style={{ marginTop: 8 }}>
-              Balance is the value you set on the account (edit it above to match your platform's Net Liq). Journal P&amp;L comes from trades linked to the account.
+              <b>Current = Start balance + Journal P&amp;L.</b> Edit the start balance above to match your platform's Net Liq; every trade linked to the account then adds its P&amp;L on top.
             </div>
           </div>
         </>
@@ -80,26 +82,27 @@ export default function AccountsView({ trades = [], propfirms = [], onUpdate, no
             <span style={{ color: statusColor(r.status), fontSize: 13, fontWeight: 600 }}>● {statusLabel(r.status)}</span>
           </h3>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 12 }}>
-            <div><span className="hint">Balance</span><br /><b>{fmtUSD(r.balance)}</b></div>
+            <div><span className="hint">Start balance</span><br /><b>{fmtUSD(r.balance)}</b></div>
             <div><span className="hint">Journal P&amp;L</span><br /><b className={cls(r.stats.totalPnl)}>{fmtUSD(r.stats.totalPnl)}</b></div>
+            <div><span className="hint">Current</span><br /><b className={cls(r.stats.totalPnl)} style={{ fontSize: 18 }}>{fmtUSD(r.balance + r.stats.totalPnl)}</b></div>
             <div><span className="hint">Trades</span><br /><b>{r.stats.count}</b></div>
             <div><span className="hint">Win rate</span><br /><b>{r.stats.winRate.toFixed(1)}%</b></div>
             <div><span className="hint">Avg R</span><br /><b>{r.stats.avgR == null ? '-' : fmtNum(r.stats.avgR)}</b></div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={r.equity}>
+            <LineChart data={r.equity.map((p) => ({ ...p, value: r.balance + p.equity }))}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.2)" />
               <XAxis dataKey="i" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v) => fmtUSD(v)} labelFormatter={(i) => `Trade #${i}`} />
-              <Line type="monotone" dataKey="equity" stroke="#3b82f6" dot={false} strokeWidth={2} />
+              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} tickFormatter={(v) => '$' + Math.round(v).toLocaleString()} width={70} />
+              <Tooltip formatter={(v) => [fmtUSD(v), 'Account value']} labelFormatter={(i) => `Trade #${i}`} />
+              <Line type="monotone" dataKey="value" stroke="#3b82f6" dot={false} strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       ))}
 
       {rows.length > 0 && withTrades.length === 0 && (
-        <div className="hint">No trades linked to accounts yet — pick the account in the trade form ("Account (prop firm)") to start tracking per-account performance.</div>
+        <div className="hint">No trades linked to accounts yet — tick the accounts in the trade form (the "Accounts (copy trader)" chips) to start tracking per-account performance.</div>
       )}
     </div>
   );
